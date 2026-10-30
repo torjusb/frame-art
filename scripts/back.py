@@ -1,7 +1,7 @@
 """Tries the way back from Art Mode (AUG-1494): when the art channel says art_mode_changed off after on, Frame TV is
 started over the remote control channel. That's the only thing it sends.
 
-    python scripts/back.py 10.1.2.36 [seconds] [app id]
+    python scripts/back.py <tv ip> [seconds] [app id]
 """
 import asyncio, datetime, json, logging, sys
 from samsungtvws.async_art import SamsungTVAsyncArt

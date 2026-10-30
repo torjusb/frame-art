@@ -4,7 +4,7 @@
 masterpieces, Japanese woodblock prints, vintage posters, deep space from NASA and your own photos, changing by
 themselves through the day. No Art Store subscription, no phone app, no uploading by hand.
 
-[![Add the repository to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feaugum%2Fframe-art)
+[![Add the repository to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Ftorjusb%2Fframe-art)
 
 ## What it does
 
@@ -36,7 +36,7 @@ themselves through the day. No Art Store subscription, no phone app, no uploadin
 ## Getting started
 
 1. Press the button above, or in Home Assistant go to Settings → Add-ons → Add-on Store → ⋮ → Repositories and add
-   `https://github.com/eaugum/frame-art`.
+   `https://github.com/torjusb/frame-art`.
 2. Install **Frame Art**, enter your TV's IP address in the options, and start it.
 3. Have the TV on, and answer **Allow** when it asks the first time.
 4. Open **Frame Art** in the sidebar and tick what you'd like to see.
@@ -46,6 +46,7 @@ is also on the add-on's Documentation tab in Home Assistant.
 
 ## Credits
 
+Frame Art was made by Eivind Augum ([eaugum/frame-art](https://github.com/eaugum/frame-art)); this is a fork of it.
 Frame Art talks to the TV with [samsung-tv-ws-api](https://github.com/NickWaterton/samsung-tv-ws-api) by Nick
 Waterton. The artworks belong to the museums and archives that share them; Frame Art only uses pictures marked as
 public domain or free to use, except for the optional film pictures from Stasera, which are for use at home.

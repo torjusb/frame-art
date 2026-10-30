@@ -1,6 +1,6 @@
 """Prints everything the Frame's art channel says for a few minutes (AUG-1494). Sends nothing, changes nothing.
 
-    python scripts/listen.py 10.1.2.36 [seconds]
+    python scripts/listen.py <tv ip> [seconds]
 """
 import asyncio, datetime, json, logging, sys
 from samsungtvws.async_art import SamsungTVAsyncArt

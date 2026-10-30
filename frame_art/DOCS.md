@@ -7,7 +7,7 @@ touching anything else there. It talks to the TV with
 
 ## Getting started
 
-1. Settings → Add-ons → Add-on Store → ⋮ → Repositories → add `https://github.com/eaugum/frame-art`.
+1. Settings → Add-ons → Add-on Store → ⋮ → Repositories → add `https://github.com/torjusb/frame-art`.
 2. Install **Frame Art**. Home Assistant builds it itself, which takes a few minutes.
 3. In the options, set `tv_host` to the TV's IP address. Giving the TV a fixed address in your router is a good idea.
 4. Turn the TV on and start the add-on. The first time, the TV asks whether to allow the connection: choose **Allow**.
