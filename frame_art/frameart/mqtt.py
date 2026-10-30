@@ -75,7 +75,7 @@ class Device:
     # MARK: - Discovery
 
     def configs(self):
-        device = {"identifiers": [BASE], "name": "Frame Art", "manufacturer": "eaugum/frame-art",
+        device = {"identifiers": [BASE], "name": "Frame Art", "manufacturer": "torjusb/frame-art",
                   "model": "Art Mode for The Frame", "sw_version": __version__}
         common = {"device": device, "availability_topic": AVAILABILITY}
 

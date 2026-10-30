@@ -1,5 +1,10 @@
 # Changes
 
+## 0.29.1
+
+- Installed from torjusb/frame-art, a fork of Eivind Augum's eaugum/frame-art: the repository, the maintainer and
+  the device in Home Assistant point to the fork.
+
 ## 0.29.0
 
 - The morning picture and tonight's show stay until they've been seen: when the TV goes off or out of Art Mode within

@@ -1,10 +1,10 @@
-# Home Assistant add-on, installed from https://github.com/eaugum/frame-art (see DOCS.md).
+# Home Assistant add-on, installed from https://github.com/torjusb/frame-art (see DOCS.md).
 # Bump version for every change, with a line in CHANGELOG.md; HA offers the update.
 name: Frame Art
-version: "0.29.0"
+version: "0.29.1"
 slug: frame_art
 description: A living gallery in The Frame's Art Mode, from museums, NASA and your own photos, with a morning picture and Follow the music
-url: https://github.com/eaugum/frame-art
+url: https://github.com/torjusb/frame-art
 arch: [aarch64, amd64]
 init: false
 startup: application
