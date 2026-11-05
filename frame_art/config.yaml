@@ -1,7 +1,7 @@
 # Home Assistant add-on, installed from https://github.com/torjusb/frame-art (see DOCS.md).
 # Bump version for every change, with a line in CHANGELOG.md; HA offers the update.
 name: Frame Art
-version: "0.29.1"
+version: "0.30.0"
 slug: frame_art
 description: A living gallery in The Frame's Art Mode, from museums, NASA and your own photos, with a morning picture and Follow the music
 url: https://github.com/torjusb/frame-art
@@ -41,6 +41,9 @@ options:
   home_entity: zone.home
   # Calendars whose events today are in the morning picture, and a Nord Pool or Tibber sensor for the electricity price
   calendars: []
+  # Each child's kindergarten calendar (the Dibber integration's calendar.<child>_dibber_plan), with a section of its
+  # own on the morning picture; the name is the calendar's when it's left out
+  kindergarten: []
   price_entity: ""
   stasera_url: "https://www.stasera.app"
   # An app opened when Art Mode goes off while the TV is on (e.g. a home screen app); empty: none
@@ -105,6 +108,9 @@ schema:
   home_entity: match(^((zone|person|device_tracker|group|binary_sensor|input_boolean)\..+)?$)?
   calendars:
     - match(^calendar\..+$)
+  kindergarten:
+    - name: str?
+      calendar: match(^calendar\..+$)
   price_entity: match(^(sensor\..+)?$)?
   stasera_url: url?
   back_app: str?

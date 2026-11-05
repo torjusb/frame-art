@@ -391,6 +391,7 @@ class Rotation:
         """What else Morgenbildet says (today.py); what doesn't answer is left out."""
         ha = self.ha.ready()
         return {"names": todaymod.names(now),
+                "children": todaymod.kindergarten(self.ha, self.cfg.get("kindergarten") or [], now) if ha else [],
                 "events": todaymod.events(self.ha, self.cfg.get("calendars") or [], now) if ha else [],
                 "shows": todaymod.shows(self.stasera, now.date()) if self.stasera.state() == "linked" else [],
                 "power": todaymod.power(self.ha, self.cfg["price_entity"], now)

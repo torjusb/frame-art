@@ -33,6 +33,7 @@ interval, the times and the switches) is on the add-on's page and is saved in `/
 | `tv_entity` | The TV as a `media_player` in Home Assistant, turned on before the morning picture and tonight's show when it's off. Empty: never |
 | `home_entity` | Who's home, for "Only when someone is home": `zone.home` (default; someone in it), or a `person`, `device_tracker`, `group`, `binary_sensor` or `input_boolean` that is `home` or `on`. Empty: always home |
 | `calendars` | `calendar.*` entities whose events today are shown on the morning picture |
+| `kindergarten` | Each child's kindergarten calendar, with a section of its own on the morning picture. See [The morning picture](#the-morning-picture) |
 | `price_entity` | A Nord Pool or Tibber price sensor for the morning picture |
 | `stasera_url` | [Stasera](https://www.stasera.app), for tonight's show, the screensaver posters and the film sources. Optional |
 | `back_app` | The id of a TV app to open when Art Mode is turned off while the TV is on, e.g. a home screen app. Empty (default): none |
@@ -166,12 +167,27 @@ At `morning_time` (07:00 by default) Frame Art makes a picture of the day, in ca
 weather:
 
 - the weekday and the date, the week number and, in Norwegian, the name day,
-- the day's highest and lowest temperature, the weather in words ("Rain from 15:00"), sunrise and sunset, and the
-  temperatures at 8, 12, 16 and 20, from `weather_entity` and `sun.sun`,
+- an icon for the day's weather, the highest and lowest temperature, the weather in words ("Rain from 15:00"), sunrise
+  and sunset, and every other hour from 8 to 20 with an icon and the temperature (a moon before sunrise and after
+  sunset), from `weather_entity` and `sun.sun`; the icons are [Yr's](https://github.com/metno/weathericons) (MIT),
 - the wind when it's at least a fresh breeze, and "Risk of icy roads" when there's precipitation around zero in the
   morning,
-- on the right, when there's something to show: today's events from `calendars`, what's new in Stasera today, and the
+- on the right, when there's something to show: each child's day in the kindergarten from `kindergarten` ("Nothing
+  planned" when the calendar is empty), today's events from `calendars`, what's new in Stasera today, and the
   electricity price hour by hour as bars, with the cheapest and dearest two hours for the rest of the day.
+
+`kindergarten` is made for the [Dibber integration](https://github.com/torjusb/hass-dibber)'s calendar per child,
+but any calendar works. The name is the calendar's own without "Dibber" and "Plan" when it's left out:
+
+```yaml
+kindergarten:
+  - calendar: calendar.nelly_dibber_plan
+  - name: Emil
+    calendar: calendar.emil_dibber_plan
+```
+
+For the morning picture in Norwegian whatever Home Assistant's language, set `language: nb`; leave `price_entity`
+empty for no electricity price.
 
 The price works with a Nord Pool sensor (`raw_today` or `today`) or Tibber's price sensor
 (`sensor.<home>_electricity_price`), whose prices come from `tibber.get_prices`. Without a weather entity, or if it

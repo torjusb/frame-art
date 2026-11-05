@@ -7,7 +7,7 @@ import os
 
 from PIL import Image, ImageDraw, ImageFont
 
-from . import image, net
+from . import icons, image, net
 from .i18n import lang, t
 
 FONT = os.path.join(os.path.dirname(__file__), "fonts", "InterVariable.ttf")
@@ -47,19 +47,19 @@ def _gradient(top, bottom):
 
 def morning_picture(now, weather, extra=None):
     """now: a local datetime. weather: from weather.from_ha(), or None without it. extra: what else
-    the day has (today.py): names, events [(time, text)], shows [text] and power ({hourly, cheap, dear, hours,
-    lines}), each left out when empty. Two columns from the top of the screen: the day and the weather on the left,
+    the day has (today.py): names, children [(name, [(time, text)] or None)], events [(time, text)], shows [text] and
+    power ({hourly, cheap, dear, hours, lines}), each left out when empty. Two columns from the top of the screen: the day and the weather on the left,
     the rest on the right."""
     extra = extra or {}
     top, bottom, ink = PALETTES[(weather or {}).get("kind", "cloudy")]
     img = _gradient(top, bottom)
     d = ImageDraw.Draw(img)
     soft = tuple(round(i * 0.72 + b * 0.28) for i, b in zip(ink, bottom))
-    x, y = 260, 200
+    x, y = 260, 190
 
     day, date = t("days")[now.weekday()].capitalize(), t("date", day=now.day, month=t("months")[now.month - 1])
-    size = 380
-    while size > 240 and d.textlength(date, font=font(size, 300)) > MORNING_LEFT - x:  # "28. september"
+    size = 330
+    while size > 220 and d.textlength(date, font=font(size, 300)) > MORNING_LEFT - x:  # "28. september"
         size -= 10
     big = font(size, 300)
     d.text((x, y), day, font=big, fill=ink)
@@ -67,53 +67,75 @@ def morning_picture(now, weather, extra=None):
     y += round(size * 2.32)
     names = extra.get("names") if lang() == "nb" else ""  # the name days are Norwegian
     d.text((x + 8, y), t("week", n=now.isocalendar()[1]) + (t("name_day", names=names) if names else ""),
-           font=font(72, 400), fill=ink)
-    y += 150
+           font=font(68, 400), fill=ink)
+    y += 135
 
     if weather:
         d.line((x + 8, y, x + 300, y), fill=soft, width=6)
-        y += 70
+        y += 60
         temp = font(200, 350)
-        d.text((x, y), "%d°" % weather["high"], font=temp, fill=ink)
+        icons.paste(img, weather.get("condition"), (x - 20, y - 5), 250)
+        tx = x + 270
+        d.text((tx, y), "%d°" % weather["high"], font=temp, fill=ink)
         w = d.textlength("%d°" % weather["high"], font=temp)
-        d.text((x + w + 50, y), "/  %d°" % weather["low"], font=temp, fill=soft)
-        y += 270
+        d.text((tx + w + 50, y), "/  %d°" % weather["low"], font=temp, fill=soft)
+        y += 260
         words = weather["words"]
         if weather["wet"]:  # "Rain most of the day", not "Rain · rain most of the day"
             wet = weather["kind"] in ("rain", "snow")
             words = weather["wet"].capitalize() if wet else words + " · " + weather["wet"]
-        d.text((x, y), words, font=font(100, 400), fill=ink)
-        y += 150
-        small = font(76, 400)
+        d.text((x, y), words, font=font(96, 400), fill=ink)
+        y += 160
         if weather.get("temps"):
-            d.text((x, y), "    ".join("%02d: %d°" % t for t in weather["temps"]), font=small, fill=ink)
-            y += 115
-        d.text((x, y), t("sun", rise=weather["sunrise"], set=weather["sunset"]), font=small, fill=soft)
+            y = _hours(img, d, weather["temps"], x, y, ink, soft)
+        small = font(68, 400)
         warn = [w for w in (weather.get("wind"), t("slippery") if weather.get("slippery") else "") if w]
+        d.text((x, y), t("sun", rise=weather["sunrise"], set=weather["sunset"]), font=small, fill=soft)
         if warn:
-            d.text((x, y + 115), " · ".join(warn), font=font(76, 500), fill=ink)
+            d.text((x, y + 100), " · ".join(warn), font=font(68, 500), fill=ink)
     _day_column(d, extra, ink, soft, (top, bottom), now)
     return img
 
 
 MORNING_LEFT = 2250  # where the left column ends; the right one starts after a gap
+HOUR_WIDTH = 270  # a column per hour in the weather through the day
+
+
+def _hours(img, d, temps, x, y, ink, soft):
+    """The weather through the day, a column per hour: the hour, an icon and the temperature. Returns the y below."""
+    label, deg, size = font(56, 500), font(72, 400), 130
+    for n, (hour, temp, condition, night) in enumerate(temps):
+        cx = x + n * HOUR_WIDTH + size / 2
+        text = "%02d" % hour
+        d.text((cx - d.textlength(text, font=label) / 2, y), text, font=label, fill=soft)
+        icons.paste(img, condition, (cx - size / 2, y + 72), size, night)
+        text = "%d°" % temp
+        d.text((cx - d.textlength(text, font=deg) / 2 + 10, y + 212), text, font=deg, fill=ink)
+    return y + 345
 
 
 def _day_column(d, extra, ink, soft, gradient, now):
-    """The right-hand column: today's events, what's new in Stasera and the electricity price, with its hours."""
+    """The right-hand column: each child's day in the kindergarten, today's events, what's new in Stasera and the
+    electricity price, with its hours."""
     x, right, y = MORNING_LEFT + 150, image.W - 260, 240
     head, body = font(56, 600), font(80, 400)
     power = extra.get("power") or {}
-    parts = [(t("today"), ["%s  %s" % (at, s) if at else s for at, s in extra.get("events") or []]),
-             (t("new_in_stasera"), extra.get("shows") or []),
-             (t("electricity"), power.get("lines") or [])]
-    for n, (heading, lines) in enumerate(parts):
-        if not lines or y > image.H - 500:
+    parts = [(t("kindergarten", name=name.upper()), lines if lines is not None else [], lines == [])
+             for name, lines in extra.get("children") or []]
+    parts = [(h, ["%s  %s" % (at, s) if at else s for at, s in lines], empty) for h, lines, empty in parts]
+    parts += [(t("today"), ["%s  %s" % (at, s) if at else s for at, s in extra.get("events") or []], False),
+              (t("new_in_stasera"), extra.get("shows") or [], False),
+              (t("electricity"), power.get("lines") or [], False)]
+    for heading, lines, empty in parts:
+        if not (lines or empty) or y > image.H - 500:
             continue
         d.text((x, y), heading, font=head, fill=soft)
         y += 100
-        if n == 2 and y < image.H - 760:
+        if heading == t("electricity") and y < image.H - 760:
             y = _prices(d, power, x, right, y, ink, soft, gradient, now)
+        if empty:  # the child's calendar answered with nothing today
+            d.text((x, y), t("nothing_planned"), font=body, fill=soft)
+            y += 113
         for line in lines:
             rows = _wrap(d, line, body, right - x)
             if len(rows) > 2:
