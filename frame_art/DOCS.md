@@ -169,7 +169,7 @@ weather:
 - the weekday and the date, the week number and, in Norwegian, the name day,
 - an icon for the day's weather, the highest and lowest temperature, the weather in words ("Rain from 15:00"), sunrise
   and sunset, and every other hour from 8 to 20 with an icon and the temperature (a moon before sunrise and after
-  sunset), from `weather_entity` and `sun.sun`,
+  sunset), from `weather_entity` and `sun.sun`; the icons are [Yr's](https://github.com/metno/weathericons) (MIT),
 - the wind when it's at least a fresh breeze, and "Risk of icy roads" when there's precipitation around zero in the
   morning,
 - on the right, when there's something to show: each child's day in the kindergarten from `kindergarten` ("Nothing

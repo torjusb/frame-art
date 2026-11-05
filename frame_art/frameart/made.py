@@ -74,7 +74,7 @@ def morning_picture(now, weather, extra=None):
         d.line((x + 8, y, x + 300, y), fill=soft, width=6)
         y += 60
         temp = font(200, 350)
-        icons.paste(img, weather.get("condition"), (x - 10, y + 10), 230, ink)
+        icons.paste(img, weather.get("condition"), (x - 20, y - 5), 250)
         tx = x + 270
         d.text((tx, y), "%d°" % weather["high"], font=temp, fill=ink)
         w = d.textlength("%d°" % weather["high"], font=temp)
@@ -103,12 +103,12 @@ HOUR_WIDTH = 270  # a column per hour in the weather through the day
 
 def _hours(img, d, temps, x, y, ink, soft):
     """The weather through the day, a column per hour: the hour, an icon and the temperature. Returns the y below."""
-    label, deg, size = font(56, 500), font(72, 400), 120
+    label, deg, size = font(56, 500), font(72, 400), 130
     for n, (hour, temp, condition, night) in enumerate(temps):
         cx = x + n * HOUR_WIDTH + size / 2
         text = "%02d" % hour
         d.text((cx - d.textlength(text, font=label) / 2, y), text, font=label, fill=soft)
-        icons.paste(img, condition, (cx - size / 2, y + 78), size, ink, night)
+        icons.paste(img, condition, (cx - size / 2, y + 72), size, night)
         text = "%d°" % temp
         d.text((cx - d.textlength(text, font=deg) / 2 + 10, y + 212), text, font=deg, fill=ink)
     return y + 345
