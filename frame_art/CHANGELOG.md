@@ -1,5 +1,15 @@
 # Changes
 
+## 0.30.0
+
+- The morning picture has weather icons: a big one for the day by the temperatures, and one for every other hour
+  from 8 to 20, each with the hour and the temperature (a moon before sunrise and after sunset). The icons are line
+  drawings in the picture's own ink, made with Pillow, so there's no icon font to ship.
+- Each child's day in the kindergarten, from the new `kindergarten` option (the Dibber integration's calendar per
+  child): a section per child at the top of the right-hand column, "NELLY I BARNEHAGEN", with "Ingenting planlagt"
+  when the calendar is empty.
+- The date is a little smaller to make room for the hours.
+
 ## 0.29.1
 
 - Installed from torjusb/frame-art, a fork of Eivind Augum's eaugum/frame-art: the repository, the maintainer and

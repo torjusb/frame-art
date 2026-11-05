@@ -27,6 +27,11 @@ configuration:
   calendars:
     name: Calendars
     description: Calendars whose events today are in the morning picture.
+  kindergarten:
+    name: Kindergarten
+    description: >-
+      Each child's kindergarten calendar (Dibber's calendar.<child>_dibber_plan) and, optionally, the child's name; each
+      child gets a section of their own on the morning picture.
   price_entity:
     name: Electricity price
     description: >-

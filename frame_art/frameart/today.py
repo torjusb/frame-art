@@ -1,5 +1,6 @@
-"""What else Morgenbildet says about the day: the week and the name day, today's events from Home Assistant's calendars,
-what's new in Stasera (an episode or a premiere today) and the electricity price. Each part is left out when its source
+"""What else Morgenbildet says about the day: the week and the name day, each child's day in the kindergarten (Dibber),
+today's events from Home Assistant's calendars, what's new in Stasera (an episode or a premiere today) and the
+electricity price. Each part is left out when its source
 doesn't answer or has nothing; none of them holds up the picture.
 """
 import datetime
@@ -15,6 +16,7 @@ log = logging.getLogger(__name__)
 with open(os.path.join(os.path.dirname(__file__), "navnedager.json"), encoding="utf-8") as f:
     NAME_DAYS = json.load(f)  # "10-26" -> ["Amandus", "Amanda"], from scripts/navnedager.py
 MAX_EVENTS = 5
+MAX_CHILD_EVENTS = 4
 MAX_SHOWS = 4
 PRICE_HOURS = 2  # the cheapest and the dearest stretch of this many hours, from now to midnight
 
@@ -27,20 +29,56 @@ def names(day):
 
 def events(ha, calendars, now):
     """[("09.00" or '', summary)] for today from Home Assistant's calendars, all-day ones first."""
-    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    q = urllib.parse.urlencode({"start": start.isoformat(), "end": (start + datetime.timedelta(days=1)).isoformat()})
     out = []
     for entity in calendars:
         try:
-            for e in json.loads(ha.get("/api/calendars/%s?%s" % (entity, q))):
-                at = (e.get("start") or {}).get("dateTime")
-                when = datetime.datetime.fromisoformat(at).astimezone(now.tzinfo) if at else None
-                if when and when.date() != now.date():
-                    continue  # began yesterday
-                out.append((when.strftime(t("clock")) if when else "", (e.get("summary") or "").strip()))
+            out += _today(ha, entity, now)
         except Exception as e:
             log.info("Morgenbildet: no events from %s (%s: %s)", entity, type(e).__name__, e)
-    return sorted({o for o in out if o[1]})[:MAX_EVENTS]
+    return sorted(set(out))[:MAX_EVENTS]
+
+
+def kindergarten(ha, children, now):
+    """[(name, [("09.00" or '', summary)] or None)] for each child's kindergarten calendar (Dibber's calendar.*_plan),
+    in the order of the options; None when the calendar doesn't answer. The name is the option's, or the calendar's
+    own without "Dibber" and "Plan"."""
+    out = []
+    for child in children:
+        entity = child.get("calendar") if isinstance(child, dict) else child
+        if not entity:
+            continue
+        name = (child.get("name") if isinstance(child, dict) else "") or _name(ha, entity)
+        try:
+            out.append((name, sorted(set(_today(ha, entity, now)))[:MAX_CHILD_EVENTS]))
+        except Exception as e:
+            log.info("Morgenbildet: no kindergarten plan from %s (%s: %s)", entity, type(e).__name__, e)
+            out.append((name, None))
+    return out
+
+
+def _name(ha, entity):
+    try:
+        name = (ha.state(entity).get("attributes") or {}).get("friendly_name") or ""
+    except Exception:
+        name = ""
+    words = [w for w in name.split() if w.lower() not in ("dibber", "plan")]
+    return " ".join(words) or entity.split(".", 1)[-1].split("_")[0].capitalize()
+
+
+def _today(ha, entity, now):
+    """[("09.00" or '', summary)] for today from one calendar; raises when it doesn't answer."""
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    q = urllib.parse.urlencode({"start": start.isoformat(), "end": (start + datetime.timedelta(days=1)).isoformat()})
+    out = []
+    for e in json.loads(ha.get("/api/calendars/%s?%s" % (entity, q))):
+        at = (e.get("start") or {}).get("dateTime")
+        when = datetime.datetime.fromisoformat(at).astimezone(now.tzinfo) if at else None
+        if when and when.date() != now.date():
+            continue  # began yesterday
+        summary = (e.get("summary") or "").strip()
+        if summary:
+            out.append((when.strftime(t("clock")) if when else "", summary))
+    return out
 
 
 

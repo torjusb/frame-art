@@ -5,7 +5,7 @@ import datetime
 from .i18n import t
 
 WET = 0.2  # mm in an hour that counts as rain
-TEMP_HOURS = (8, 12, 16, 20)  # the temperature through the day
+HOURS = (8, 10, 12, 14, 16, 18, 20)  # the weather through the day, with an icon each
 WINDY = 8.0  # m/s: from frisk bris, the wind is worth a line
 # The Beaufort scale from m/s, from hurricane down to fresh breeze; the names are t("winds") in the same order
 WINDS = (32.7, 28.5, 24.5, 20.8, 17.2, 13.9, 10.8, WINDY)
@@ -21,8 +21,9 @@ CONDITIONS = {
 
 
 def from_ha(ha, entity, now):
-    """{high, low, words, kind, wet, sunrise, sunset, temps, wind, slippery} for today. The kind picks the picture's
-    colours; temps is [(hour, °)], wind a line or '' and slippery whether the roads may be icy this morning."""
+    """{high, low, words, kind, condition, wet, sunrise, sunset, temps, wind, slippery} for today. The kind picks the
+    picture's colours and the condition its icon; temps is [(hour, °, condition, night)], wind a line or '' and slippery
+    whether the roads may be icy this morning."""
     def forecast(kind):
         r = ha.post("/api/services/weather/get_forecasts?return_response", {"entity_id": entity, "type": kind})
         return [dict(f, at=datetime.datetime.fromisoformat(f["datetime"]).astimezone(now.tzinfo))
@@ -35,12 +36,22 @@ def from_ha(ha, entity, now):
     words, kind = t("conditions").get(day.get("condition"), ""), CONDITIONS.get(day.get("condition"), "cloudy")
     sun = ha.state("sun.sun").get("attributes") or {}
 
-    def clock(k):  # the next sunrise or sunset: today's, or tomorrow's (a few minutes off) once it's passed
-        return datetime.datetime.fromisoformat(sun[k]).astimezone(now.tzinfo).strftime(t("clock")) if sun.get(k) else "–"
+    def at(k):  # the next sunrise or sunset: today's, or tomorrow's (a few minutes off) once it's passed
+        return datetime.datetime.fromisoformat(sun[k]).astimezone(now.tzinfo) if sun.get(k) else None
+
+    def clock(k):
+        return at(k).strftime(t("clock")) if at(k) else "–"
+
+    def night(hour):  # the hour begins before sunrise or after sunset, by the time of day
+        rise, set_ = at("next_rising"), at("next_setting")
+        if not rise or not set_:
+            return hour < 7 or hour >= 19
+        return hour < rise.hour + rise.minute / 60 or hour >= set_.hour + set_.minute / 60
     return {"high": round(day["temperature"]), "low": round(day.get("templow", day["temperature"])), "words": words,
-            "kind": kind, "wet": _wet_hours(hours), "sunrise": clock("next_rising"), "sunset": clock("next_setting"),
-            "temps": [(f["at"].hour, round(f["temperature"])) for f in hourly
-                      if f["at"].hour in TEMP_HOURS and f.get("temperature") is not None],
+            "kind": kind, "condition": day.get("condition"), "wet": _wet_hours(hours),
+            "sunrise": clock("next_rising"), "sunset": clock("next_setting"),
+            "temps": [(f["at"].hour, round(f["temperature"]), f.get("condition"), night(f["at"].hour)) for f in hourly
+                      if f["at"].hour in HOURS and f.get("temperature") is not None],
             "wind": _wind([f for f in hourly if 7 <= f["at"].hour <= 22], per_s),
             "slippery": any(_freezing(f) for f in hourly if 5 <= f["at"].hour <= 11)}
 
