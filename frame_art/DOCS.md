@@ -37,6 +37,8 @@ interval, the times and the switches) is on the add-on's page and is saved in `/
 | `price_entity` | A Nord Pool or Tibber price sensor for the morning picture |
 | `stasera_url` | [Stasera](https://www.stasera.app), for tonight's show, the screensaver posters and the film sources. Optional |
 | `back_app` | The id of a TV app to open when Art Mode is turned off while the TV is on, e.g. a home screen app. Empty (default): none |
+| `typesafe_api_key` | A key from [TypeSafe](https://console.typesafe.ai) for the content filter. Empty (default): no filter. See [The content filter](#the-content-filter) |
+| `content_filter_threshold` | How sure the filter has to be before a picture is left out, from 0.05 to 0.95. Default 0.5; lower leaves out more |
 | `sources` | Where the pictures come from. See [Sources](#sources) |
 
 ## Language
@@ -132,6 +134,7 @@ Open **Frame Art** in the sidebar. A line under the title says what's in charge 
 - set how often the picture changes, how many of Frame Art's pictures stay on the TV, and the times for the morning
   picture and tonight's show,
 - turn the screensaver on or off,
+- turn the content filter on or off (with `typesafe_api_key` set),
 - leave out the picture on the wall for good: "Don't show again" in the picture's corner, then yes to the question
   (a backdrop with a logo after all, or a picture you don't like). Another one comes at once,
 - link the add-on to Stasera.
@@ -232,6 +235,32 @@ It goes in front of everything else, but doesn't turn on Art Mode by itself. Thr
 picture from before comes back. "Only when someone is home" follows the music only when `home_entity` (`zone.home` by default) says someone is home;
 the same switch is for turning the TV on before the morning picture and tonight's show.
 
+## The content filter
+
+The collections are big, and a few of their pictures aren't for a living room wall: a battlefield, an anatomical
+plate from Wellcome, a propaganda poster in a Commons category. With `typesafe_api_key` set, every picture from the
+sources is shown to [Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev), TypeSafe's fast decision
+model, before it goes on the wall. Jev gets the picture as it will be on the wall (cropped to 16:9, scaled down to
+1568 pixels) and its title, and answers three yes/no questions with a probability:
+
+- **gore**: blood, open wounds, mutilation, dead bodies, a surgical or anatomical dissection
+- **violence**: killing, torture, an execution or a battle with the dead in view as the main subject
+- **extremism**: Nazi, fascist or other hate symbols used as political emblems, or propaganda for such movements
+
+When one is at `content_filter_threshold` (0.5) or more, the picture is left out for good, like "Don't show again",
+and another one is drawn. The Debug tab lists each one under the rotation ("left out by the content filter: …, gore
+0.91"), and the log has the scores of every picture that was checked, so you can tell what to raise or lower the
+threshold to. Each picture is checked once.
+
+- Your own pictures (`folder` sources) are never sent to TypeSafe, and neither are the morning picture, tonight's
+  show and the album covers, which Frame Art makes itself.
+- A picture you choose on the add-on's page isn't checked: you've seen it.
+- The thumbnails on the add-on's page aren't checked; a picture is checked when it's drawn for the wall.
+- When TypeSafe doesn't answer, the picture isn't shown and isn't left out: another is tried, and the one on the wall
+  stays when none can be checked. The Debug tab says why ("content filter: HTTP 401 …").
+- Images are in early access at TypeSafe (they call it "dreamer-ready"); the answers may change as they update Jev.
+  Each picture is billed as input tokens at TypeSafe's price; one check per new picture.
+
 ## In Home Assistant (MQTT)
 
 With the Mosquitto broker add-on and the MQTT integration, Frame Art shows up as the device **Frame Art**, with nothing
@@ -246,6 +275,7 @@ to set up. Without Mosquitto it runs as before.
 | `switch.frame_art_morning`, `_tonight` | The morning picture and tonight's show |
 | `switch.frame_art_screensaver`, `_screensaver_stasera`, `_music` | The screensaver and Follow the music |
 | `switch.frame_art_music_home_only` | Only when someone is home: Follow the music, and turning the TV on |
+| `switch.frame_art_content_filter` | The content filter (with `typesafe_api_key` set) |
 | `sensor.frame_art_showing` | The picture's title, with the source, the category, when it changed and the next change as attributes |
 | `sensor.frame_art_wanted` | What's in charge: `music`, `rotation`, `fixed`, `morning`, `tonight` or `saver` |
 | `image.frame_art_picture` | The picture on the wall, 1280 pixels wide |
@@ -303,6 +333,9 @@ but only when the TV has just said it's on and not in Art Mode.
   prompt. The token it gets is saved in `/data/token.txt`; delete it to ask again.
 - **A source has 0 pictures:** the name or the query is probably wrong; the log says which.
 - **The morning picture has no weather:** check `weather_entity`.
+- **The picture doesn't change, and the Debug tab says "content filter: HTTP 401":** `typesafe_api_key` is wrong;
+  with HTTP 400, TypeSafe may not have opened images for the key yet. Turn the content filter off on the add-on's page
+  meanwhile.
 
 ## Running it without Home Assistant
 

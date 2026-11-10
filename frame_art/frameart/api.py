@@ -18,7 +18,7 @@ POST /artmode  Art Mode on, with the picture it has
 POST /never    what's on the wall (from a source; showing_key in /status) is never drawn again, and another comes
 POST /settings JSON with what to change: sources_off (the sources not ticked), interval_minutes, keep,
                morning, morning_time, morning_tv_on, tonight, tonight_time, tonight_tv_on, screensaver,
-               screensaver_stasera, music, music_home_only (the music and turning the TV on); mode shuffle ends a fixed picture, and mode category with category ticks only that
+               screensaver_stasera, music, music_home_only (the music and turning the TV on), content_filter; mode shuffle ends a fixed picture, and mode category with category ticks only that
                category's sources. New sources_off ends a fixed picture too. /schedule is the same.
 POST /stasera/link    a code to approve in Stasera (in /status under pairing until it's approved)
 POST /stasera/unlink  forgets the Stasera token

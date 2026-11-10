@@ -1,7 +1,7 @@
 # Home Assistant add-on, installed from https://github.com/torjusb/frame-art (see DOCS.md).
 # Bump version for every change, with a line in CHANGELOG.md; HA offers the update.
 name: Frame Art
-version: "0.30.0"
+version: "0.31.0"
 slug: frame_art
 description: A living gallery in The Frame's Art Mode, from museums, NASA and your own photos, with a morning picture and Follow the music
 url: https://github.com/torjusb/frame-art
@@ -48,6 +48,11 @@ options:
   stasera_url: "https://www.stasera.app"
   # An app opened when Art Mode goes off while the TV is on (e.g. a home screen app); empty: none
   back_app: ""
+  # The content filter: TypeSafe's Jev looks at each picture from the sources before it goes on the wall, and one
+  # that shows gore, violence or extremism is left out for good. Empty: no filter. Your own pictures aren't sent
+  typesafe_api_key: ""
+  # How sure Jev has to be (0-1) before a picture is left out; lower leaves out more
+  content_filter_threshold: 0.5
   # A source: category (several sources can share one; without it, the name), name, type and query (several with
   # |). Every source here is used; tick them on the add-on's page. Only pictures close to 16:9, cropped to fill the
   # screen. Types and queries: DOCS.md.
@@ -114,6 +119,8 @@ schema:
   price_entity: match(^(sensor\..+)?$)?
   stasera_url: url?
   back_app: str?
+  typesafe_api_key: password?
+  content_filter_threshold: float(0.05,0.95)?
   sources:
     - name: str
       category: str?
