@@ -44,6 +44,16 @@ configuration:
     name: App after Art Mode
     description: >-
       The id of a TV app to open when Art Mode is turned off while the TV is on, e.g. a home screen app. Empty: none.
+  typesafe_api_key:
+    name: TypeSafe API key
+    description: >-
+      For the content filter: TypeSafe's Jev looks at each picture from the sources before it goes on the wall, and
+      one that shows gore, violence or extremism is left out for good. Your own pictures aren't sent. Empty: no
+      filter. A key is at console.typesafe.ai.
+  content_filter_threshold:
+    name: Content filter threshold
+    description: >-
+      How sure Jev has to be (0.05 to 0.95, default 0.5) before a picture is left out; lower leaves out more.
   sources:
     name: Sources
     description: >-

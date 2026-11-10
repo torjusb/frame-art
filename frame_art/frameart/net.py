@@ -10,7 +10,8 @@ from . import __version__
 USER_AGENT = "frame-art/%s (https://github.com/torjusb/frame-art)" % __version__
 
 
-def get(url, params=None, accept=None, timeout=60, headers=None):
+def get(url, params=None, accept=None, timeout=60, headers=None, data=None):
+    """GET, or POST with data (bytes)."""
     if params:
         url += ("&" if "?" in url else "?") + urllib.parse.urlencode(params, doseq=True)
     headers = dict(headers or {}, **{"User-Agent": USER_AGENT})
@@ -18,7 +19,7 @@ def get(url, params=None, accept=None, timeout=60, headers=None):
         headers["Accept"] = accept
     for attempt in range(4):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=timeout) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers), timeout=timeout) as r:
                 return r.read()
         except urllib.error.HTTPError as e:
             if e.code not in (429, 503) or attempt == 3:  # too many at once: Commons, when it lists a big tree
@@ -29,3 +30,9 @@ def get(url, params=None, accept=None, timeout=60, headers=None):
 
 def get_json(url, params=None, accept="application/json"):
     return json.loads(get(url, params, accept))
+
+
+def post_json(url, body, headers=None, timeout=60):
+    headers = dict(headers or {}, **{"Content-Type": "application/json"})
+    return json.loads(get(url, accept="application/json", timeout=timeout, headers=headers,
+                          data=json.dumps(body).encode()))

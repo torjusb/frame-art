@@ -178,6 +178,8 @@
       <label class="switch"><input type="checkbox" data-setting="screensaver_stasera"><i></i></label></div>
     <div class="row"><span><span data-t="home_only"></span><small id="home-note"></small></span>
       <label class="switch"><input type="checkbox" data-setting="music_home_only"><i></i></label></div>
+    <div class="row"><span><span data-t="content_filter"></span><small id="filter-note"></small></span>
+      <label class="switch"><input type="checkbox" data-setting="content_filter"><i></i></label></div>
   </section>
 
   <section>
@@ -366,6 +368,10 @@
     if (!s.home_entity) home.checked = false;
     $("home-note").textContent = s.home_entity ? tr("home_only_note", {entity: s.home_entity}) :
       tr("home_only_missing");
+    var filter = $("filter-note").parentNode.parentNode.querySelector("input");
+    filter.disabled = !s.typesafe_key;
+    if (!s.typesafe_key) filter.checked = false;
+    $("filter-note").textContent = tr(s.typesafe_key ? "content_filter_note" : "content_filter_missing");
   }
 
   function connections(s) {

@@ -30,7 +30,7 @@ import shutil
 import time
 from zoneinfo import ZoneInfo
 
-from . import __version__, events, i18n, image, made, music, net, sources, today as todaymod, weather
+from . import __version__, events, i18n, image, made, moderate, music, net, sources, today as todaymod, weather
 from .i18n import t
 from .stasera import Stasera, Unlinked
 from . import tv as tvmod
@@ -85,6 +85,8 @@ SETTINGS = {
     # Only when someone is home (home_entity in the options): Follow the music and turning the TV on. The name is
     # from when it was only the music; it's kept for switch.frame_art_music_home_only
     "music_home_only": (True, _bool),
+    # The content filter (typesafe_api_key in the options): Jev looks at each picture from the sources first
+    "content_filter": (True, _bool),
 }
 SCHEDULE = ("interval_minutes", "morning", "morning_time", "tonight", "tonight_time")
 
@@ -137,6 +139,7 @@ class Rotation:
         self.away_logged = None  # the day "nobody home" was last in the log
         self.before_path = os.path.join(data_dir, "before.jpg")  # what was on the wall when the music started
         self.ha = music.HomeAssistant(cfg)
+        self.moderator = moderate.Moderator.from_config(cfg)  # None without typesafe_api_key
         i18n.setup(cfg)
         self.music, self.music_at = None, 0  # what played last, and when it was last seen playing
         self.wake = asyncio.Event()  # the music changed: the timer looks at once
@@ -283,13 +286,31 @@ class Rotation:
     def source_of(self, full):
         return self.by_name.get(full.split(":", 1)[0])
 
-    def render(self, src, key):
-        """(jpeg, label, full key) for one key; raises sources.Skip when it can't be used."""
+    def render(self, src, key, check=True):
+        """(jpeg, label, full key) for one key; raises sources.Skip when it can't be used. check: through the content
+        filter, when it's on (not for a picture you chose yourself)."""
         img, label = src.fetch(key)
         if not image.croppable(*img.size):
             raise sources.Skip("%dx%d isn't close to 16:9" % img.size)
         img = image.fill(img)
+        if check:
+            self.moderate(src, img, "%s: %s" % (src.name, label))
         return image.to_jpeg(img), "%s: %s" % (src.name, label), src.name + ":" + key
+
+    def filtering(self):
+        return bool(self.moderator) and self.cfg.get("content_filter", True)
+
+    def moderate(self, src, img, label):
+        """Raises sources.Skip when the content filter flags the picture (it's never drawn again), or RuntimeError
+        when TypeSafe can't be asked (it's tried again later). Your own pictures (folder sources) aren't sent."""
+        if not self.filtering() or src.type == "folder":
+            return
+        verdict = self.moderator.check(img, label)
+        if verdict.flagged:
+            log.info("content filter flagged %s (%s)", label, verdict)
+            events.add("rotation", "flagged", "left out by the content filter: %s (%s)" % (label, verdict.reason))
+            raise sources.Skip("flagged by the content filter: " + verdict.reason)
+        log.info("content filter: %s (%s)", label, verdict)
 
     def pick(self):
         """(jpeg, label, key) for a new picture, or None."""
@@ -488,7 +509,7 @@ class Rotation:
             raise ValueError("no source called %s" % full.split(":", 1)[0])
         async with self.lock:
             try:
-                got = await asyncio.to_thread(self.render, src, full.split(":", 1)[1])
+                got = await asyncio.to_thread(self.render, src, full.split(":", 1)[1], False)
             except sources.Skip as e:
                 self.state["bad"].append(full)
                 self.state.save()
@@ -966,6 +987,7 @@ class Rotation:
                 "stasera": self.stasera.state(), "pairing": self.stasera.pairing, "busy": self.lock.locked(),
                 "saver": self.saver, "showing_key": self.showing_key(), "tv_entity": bool(self.cfg.get("tv_entity")),
                 "home_entity": self.home_entity(),
+                "typesafe_key": bool(self.moderator),  # the content filter can be on
                 "tv": {"power": self.seen["power"], "activity": self.activity(),
                        "art_mode": False if self.seen["power"] is False else self.seen["art_mode"]},
                 "music": {k: self.music[k] for k in ("album", "artist", "title")}

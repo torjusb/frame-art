@@ -22,6 +22,8 @@ themselves through the day. No Art Store subscription, no phone app, no uploadin
   are entities over MQTT, ready for automations and dashboards.
 - **A page of its own** in the Home Assistant sidebar: tick the sources you want, choose a picture to keep on the wall,
   and set how often it changes.
+- **A content filter**, if you like: with a TypeSafe key, Jev looks at each picture before it goes up and leaves out
+  gore, violence and extremist imagery.
 - **Tidy.** Frame Art cleans up its own old pictures on the TV and never touches the rest of "My Photos".
 - **English or Norwegian** on the wall, following Home Assistant's language.
 

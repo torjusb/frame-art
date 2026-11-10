@@ -1,5 +1,14 @@
 # Changes
 
+## 0.31.0
+
+- A content filter: with `typesafe_api_key` in the options, TypeSafe's Jev looks at every picture from the sources
+  before it goes on the wall, with its title, and one that shows gore, violence or extremism (hate symbols,
+  propaganda) is left out for good, like "Don't show again". `content_filter_threshold` (0.5) says how sure it has to
+  be. Your own pictures aren't sent, and a picture you choose on the page isn't checked. On the page and in Home
+  Assistant (`switch.frame_art_content_filter`) it can be turned off. The Debug tab lists what it left out.
+- The add-on says its version right in `/status` again (it said 0.29.1).
+
 ## 0.30.0
 
 - The morning picture has weather icons: a big one for the day by the temperatures, and one for every other hour
